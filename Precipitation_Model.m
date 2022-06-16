@@ -44,14 +44,14 @@ for  ggsm = 1:3
             % there are 12 entries, one for each month. mean and stddev were analyzed for each month over a period of 18 years. 
             % each value in rmin is (mean - stddev) while each value in rmax is (mean + stddev)
             
-            rmin = mean(rain,2) - std(rain,0,2);
-            rmax = mean(rain,2) + std(rain,0,2);
-            rmin_lim = 0.75*min(min(rain)); % max observed rainfall in the dataset 
-            rmax_lim = 1.25*max(max(rain)); % min observed rainfall in the dataset 
+            rdry = mean(rain,2) - 2*std(rain,0,2);
+            rflood = mean(rain,2) + 2*std(rain,0,2);
+            rmin = min(mean(rain,2) - 3*std(rain,0,2));
+            rmax = max(mean(rain,2) + 3*std(rain,0,2)); 
             
 % ========================== DEFINE MODEL PARAMETERS =========================================================================
             
-            expwet = 0.15; % Exploitable water recharge fraction in wet state.
+            expwet = 0.05; % Exploitable water recharge fraction in wet state.
             expflood = 0.01; % Exploitable water recharge fraction in flood state.
             climatechange = [0 1]; % toggle between 0 and 1 to activate climate change
             deltap = 0.0005; % Step change in transition probabilities. +ve deltap implies increasing frequency of floods and droughts. This captures the effects of climate change.
@@ -91,23 +91,23 @@ for  ggsm = 1:3
             
             for j = 1:years
                 for k = 2:months
-                    if rain(k,j) < rmin(k) && rain(k-1,j) < rmin(k-1)
+                    if rain(k,j) < rdry(k) && rain(k-1,j) < rdry(k-1)
                         nrain(1,1,k) = nrain(1,1,k) + 1;
-                    else if rain(k,j) < rmin(k) && rain(k-1,j) > rmin(k-1) && rain(k-1,j) < rmax(k-1)
+                    else if rain(k,j) < rdry(k) && rain(k-1,j) > rdry(k-1) && rain(k-1,j) < rflood(k-1)
                             nrain(2,1,k) = nrain(2,1,k) + 1;
-                    else if rain(k,j) > rmin(k) && rain(k,j) < rmax(k) && rain(k-1,j) < rmin(k-1)
+                    else if rain(k,j) > rdry(k) && rain(k,j) < rflood(k) && rain(k-1,j) < rdry(k-1)
                                 nrain(1,2,k) = nrain(1,2,k) + 1;
-                    else if rain(k,j) > rmin(k) && rain(k,j) < rmax(k) && rain(k-1,j) > rmin(k-1) && rain(k-1,j) < rmax(k-1)
+                    else if rain(k,j) > rdry(k) && rain(k,j) < rflood(k) && rain(k-1,j) > rdry(k-1) && rain(k-1,j) < rflood(k-1)
                                     nrain(2,2,k) = nrain(2,2,k) + 1;
-                    else if rain(k,j) > rmax(k) && rain(k-1,j) < rmin(k-1)
+                    else if rain(k,j) > rflood(k) && rain(k-1,j) < rdry(k-1)
                                         nrain(1,3,k) = nrain(1,3,k) + 1;
-                    else if rain(k,j) > rmax(k) && rain(k-1,j) > rmin(k-1) && rain(k-1,j) < rmax(k-1)
+                    else if rain(k,j) > rflood(k) && rain(k-1,j) > rdry(k-1) && rain(k-1,j) < rflood(k-1)
                                             nrain(2,3,k) = nrain(2,3,k) + 1;
-                    else if rain(k,j) > rmax(k) && rain(k-1,j) > rmax(k-1)
+                    else if rain(k,j) > rflood(k) && rain(k-1,j) > rflood(k-1)
                                                 nrain(3,3,k) = nrain(3,3,k) + 1;
-                    else if rain(k,j) < rmin(k) && rain(k-1,j) > rmax(k-1)
+                    else if rain(k,j) < rdry(k) && rain(k-1,j) > rflood(k-1)
                                                     nrain(3,1,k) = nrain(3,1,k) + 1;
-                    else if rain(k,j) > rmin(k) && rain(k,j) < rmax(k) && rain(k-1,j) > rmax(k-1)
+                    else if rain(k,j) > rdry(k) && rain(k,j) < rflood(k) && rain(k-1,j) > rflood(k-1)
                                                         nrain(3,2,k) = nrain(3,2,k) + 1;
                     end
                     end
@@ -122,23 +122,23 @@ for  ggsm = 1:3
             
             %     Looping back to month 1 from month 12
             
-                if rain(1,j) < rmin(1) && rain(12,j) < rmin(12)
+                if rain(1,j) < rdry(1) && rain(12,j) < rdry(12)
                         nrain(1,1,1) = nrain(1,1,1) + 1;
-                else if rain(1,j) < rmin(1) && rain(12,j) > rmin(12) && rain(12,j) < rmax(12)
+                else if rain(1,j) < rdry(1) && rain(12,j) > rdry(12) && rain(12,j) < rflood(12)
                             nrain(2,1,1) = nrain(2,1,1) + 1;
-                else if rain(1,j) > rmin(1) && rain(1,j) < rmax(1) && rain(12,j) < rmin(12)
+                else if rain(1,j) > rdry(1) && rain(1,j) < rflood(1) && rain(12,j) < rdry(12)
                                 nrain(1,2,1) = nrain(1,2,1) + 1;
-                else if rain(1,j) > rmin(1) && rain(1,j) < rmax(1) && rain(12,j) > rmin(12) && rain(12,j) < rmax(12)
+                else if rain(1,j) > rdry(1) && rain(1,j) < rflood(1) && rain(12,j) > rdry(12) && rain(12,j) < rflood(12)
                                     nrain(2,2,1) = nrain(2,2,1) + 1;
-                else if rain(1,j) > rmax(1) && rain(12,j) < rmin(12)
+                else if rain(1,j) > rflood(1) && rain(12,j) < rdry(12)
                                         nrain(1,3,1) = nrain(1,3,1) + 1;
-                else if rain(1,j) > rmax(1) && rain(12,j) > rmin(12) && rain(12,j) < rmax(12)
+                else if rain(1,j) > rflood(1) && rain(12,j) > rdry(12) && rain(12,j) < rflood(12)
                                             nrain(2,3,1) = nrain(2,3,1) + 1;
-                else if rain(1,j) > rmax(1) && rain(12,j) > rmax(12)
+                else if rain(1,j) > rflood(1) && rain(12,j) > rflood(12)
                                                 nrain(3,3,1) = nrain(3,3,1) + 1;
-                else if rain(1,j) < rmin(1) && rain(12,j) > rmax(12)
+                else if rain(1,j) < rdry(1) && rain(12,j) > rflood(12)
                                                     nrain(3,1,1) = nrain(3,1,1) + 1;
-                else if rain(1,j) > rmin(1) && rain(1,j) < rmax(1) && rain(12,j) > rmax(12)
+                else if rain(1,j) > rdry(1) && rain(1,j) < rflood(1) && rain(12,j) > rflood(12)
                                                         nrain(3,2,1) = nrain(3,2,1) + 1;
                 end
                 end
@@ -176,8 +176,8 @@ for  ggsm = 1:3
             % The first for loop simulates the model as many times as desired
             
             for i = 1:nsim
-                rmin_lim = min(min(rain));
-                rmax_lim = max(max(rain));
+                rmin = min(mean(rain,2) - 3*std(rain,0,2));
+                rmax = max(mean(rain,2) + 3*std(rain,0,2));
                 Mrain = Mrain_default; % Values are reset after every simulation
             
             % The second for loop generates the predicted rainfall vector for each simulation
@@ -206,69 +206,69 @@ for  ggsm = 1:3
             % Again, a random number is generated in the interval corresponding to the chosen state. 
             % This number becomes the amount of rainfall in the next timestep.
             
-                        if rf(m) < rmin(j)
+                        if rf(m) < rdry(j)
                             if rain_rnd1 < Mrain(1,1,j)
                                 if j == months
                                     j = 0;
                                 end
-                                rf(m+1) = rmin_lim + (rmin(j+1) - rmin_lim)*rand;
+                                rf(m+1) = rmin + (rdry(j+1) - rmin)*rand;
                             else
                             if rain_rnd2 < Mrain(1,2,j)/(Mrain(1,2,j)+Mrain(1,3,j))
                                 if j == months
                                     j = 0;
                                 end
-                                rf(m+1) = rmin(j+1) + (rmax(j+1) - rmin(j+1))*rand;
+                                rf(m+1) = rdry(j+1) + (rflood(j+1) - rdry(j+1))*rand;
                             else
                                 if j == months
                                     j = 0;
                                 end
-                                rf(m+1) = rmax(j+1) + (rmax_lim - rmax(j+1))*rand;
+                                rf(m+1) = rflood(j+1) + (rmax - rflood(j+1))*rand;
                             end
                             end
                         end
                         if j == 0
                             j = months;
                         end
-                        if rf(m) > rmin(j) && rf(m) < rmax(j)
+                        if rf(m) > rdry(j) && rf(m) < rflood(j)
                             if rain_rnd1 < Mrain(2,1,j)
                                 if j == months
                                     j = 0;
                                 end
-                                rf(m+1) = rmin_lim + (rmin(j+1) - rmin_lim)*rand;
+                                rf(m+1) = rmin + (rdry(j+1) - rmin)*rand;
                             else
                             if rain_rnd2 < Mrain(2,2,j)/(Mrain(2,2,j)+Mrain(2,3,j))
                                 if j == months
                                     j = 0;
                                 end
-                                rf(m+1) = rmin(j+1) + (rmax(j+1) - rmin(j+1))*rand;
+                                rf(m+1) = rdry(j+1) + (rflood(j+1) - rdry(j+1))*rand;
                             else
                                 if j == months
                                     j = 0;
                                 end
-                                rf(m+1) = rmax(j+1) + (rmax_lim - rmax(j+1))*rand;
+                                rf(m+1) = rflood(j+1) + (rmax - rflood(j+1))*rand;
                             end
                             end
                         end
                         if j == 0
                             j = months;
                         end
-                        if rf(m) > rmax(j)
+                        if rf(m) > rflood(j)
                             if rain_rnd1 < Mrain(3,1,j)
                                 if j == months
                                     j = 0;
                                 end
-                                rf(m+1) = rmin_lim + (rmin(j+1) - rmin_lim)*rand;
+                                rf(m+1) = rmin + (rdry(j+1) - rmin)*rand;
                             else
                             if rain_rnd2 < Mrain(3,2,j)/(Mrain(3,2,j)+Mrain(3,3,j))
                                 if j == months
                                     j = 0;
                                 end
-                                rf(m+1) = rmin(j+1) + (rmax(j+1) - rmin(j+1))*rand;
+                                rf(m+1) = rdry(j+1) + (rflood(j+1) - rdry(j+1))*rand;
                             else
                                 if j == months
                                     j = 0;
                                 end
-                                rf(m+1) = rmax(j+1) + (rmax_lim - rmax(j+1))*rand;
+                                rf(m+1) = rflood(j+1) + (rmax - rflood(j+1))*rand;
                             end
                             end
                         end
@@ -282,8 +282,8 @@ for  ggsm = 1:3
                                     Mrain(k,2,j) = Mrain(k,2,j) - 2*deltap*climatechange(cc);
                             end
                         end
-                        rmax_lim = rmax_lim*(1+deltar*climatechange(cc));
-                        rmin_lim = rmin_lim*(1-deltar*climatechange(cc));
+                        rmax = rmax*(1+deltar*climatechange(cc));
+                        rmin = rmin*(1-deltar*climatechange(cc));
                             
                 end
                 
@@ -317,19 +317,20 @@ for  ggsm = 1:3
                 if k == 0
                     k = 12;
                 end
-                if rain_bestfit(j) < rmin(k)
+                if rain_bestfit(j) < rmin
                     expr(j+1) = 0; 
                 else
-                if rain_bestfit(j) > rmax(k)
-                        expr(j+1) = expwet*rmax(k)*(1 - ((rain_bestfit(j)-rmax(k))/(rmax_lim - rmax(k))));
+                if rain_bestfit(j) > rmin && rain_bestfit(j) < rmax
+                    expr(j+1) = expwet*rain_bestfit(j); 
                 else
-                    expr(j+1) = expwet*rain_bestfit(j);
+                    expr(j+1) = expwet*rmax;
                 end
                 end
             end
+            expr(1) = expr(2);
             
             for j = 1:Tfinal
-                weekly_exp(j) = expr(ceil(j*months/52))*area(c); % convert monthly data to weekly
+                weekly_exp(j) = expr(ceil(j*months/52))*7*area(c); % convert monthly data to weekly
             end
             
         
